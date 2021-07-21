@@ -2,13 +2,28 @@ const Product = require('./model');
 const config = require('../config')
 const fs = require('fs');
 const path = require('path');
+const Category = require('../category/model');
+const Tag      = require('../tag/model');
 //buat function store 
 
 async function store(req,res,next){
     // > tangkap data form yang dikirimkan oleh client sebagai variabel `payload`
    try{
     let payload = req.body;
-
+    if (payload.category){
+    let category = await Category.findOne({name: {$regex: payload.category,$options:'i'}});
+    if(category){
+        payload = {...payload,category:category._id};
+    }else{
+        delete payload.category;
+    }   
+    }
+    if(payload.tags && payload.tags.length){
+        let tags = await Tag.find({name:{$in:payload.tags}});
+        if(tags.length){
+            payload ={...payload,tags:tags.map(tag =>tag._id)}
+        }
+    }
     //buat product baru menggunakan data dari payload
     if(req.file){
         let tmp_path = req.file.path;
@@ -74,8 +89,26 @@ async function store(req,res,next){
 // index 
 async function index(req,res,next){
     try {
-        let = {limit=10,skip=0 } = req.query;
-        let products = await Product.find().limit(parseInt(limit)).skip(parseInt(skip));
+        let = {limit=10,skip=0 ,q ='' ,category='',tags =[]} = req.query;
+        let criteria = {};
+        if(q.length){
+            criteria = {
+                ...criteria,
+                name:{$regex:`${q}`,$options:'i'}
+            }
+        }
+        if(category.length){
+            category = await Category.findOne({name:{$regex:`${category}`,$options:'i'}});
+        }
+        if(category){
+            criteria = {...criteria,category:category._id}
+        }
+        if(tags.length){
+            tags = await Tag.find({name:{$in:tags}});
+            criteria = {...criteria,tags:{$in:tags.map(tag=>tag._id)}}
+        }
+        let products = await Product.find().limit(parseInt(limit)).skip(parseInt(skip))
+                            .populate('category').populate('tags');
         return res.json(products);
     } catch (err) {
         next(err);
@@ -87,7 +120,20 @@ async function update(req,res,next){
     // > tangkap data form yang dikirimkan oleh client sebagai variabel `payload`
    try{
     let payload = req.body;
-
+    if (payload.category){
+        let category = await Category.findOne({name: {$regex: payload.category,$options:'i'}});
+        if(category){
+            payload = {...payload,category:category._id};
+        }else{
+            delete payload.category;
+        }   
+    }
+    if(payload.tags && payload.tags.length){
+        let tags = await Tag.find({name:{$in:payload.tags}});
+        if(tags.length){
+            payload ={...payload,tags:tags.map(tag =>tag._id)}
+        }
+    }
     //buat product baru menggunakan data dari payload
     if(req.file){
         let tmp_path = req.file.path;
