@@ -7,6 +7,8 @@ var logger = require('morgan');
 const productRouter = require('./app/product/router');
 const categoryRouter = require('./app/category/router');
 const tagRouter = require('./app/tag/router');
+const authRouter = require('./app/auth/router');
+const { decodeToken } = require('./app/auth/middleware');
 var app = express();
 
 // view engine setup
@@ -23,6 +25,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api',productRouter);
 app.use('/api',categoryRouter);
 app.use('/api',tagRouter);
+app.use('/auth',authRouter);
+app.use(decodeToken())
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));

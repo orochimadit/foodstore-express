@@ -4,11 +4,25 @@ const fs = require('fs');
 const path = require('path');
 const Category = require('../category/model');
 const Tag      = require('../tag/model');
+const {policyFor} = require('../policy');
+
 //buat function store 
 
 async function store(req,res,next){
     // > tangkap data form yang dikirimkan oleh client sebagai variabel `payload`
-   try{
+   try {
+       let policy = policyFor(req.user);
+       if(!policy.can('create','Product')){
+        return res.json({
+            error:1,
+            message:`Anda tidak memiliki akses untuk membuat produk`
+        });
+       }
+   } catch (error) {
+       
+   }
+
+    try{
     let payload = req.body;
     if (payload.category){
     let category = await Category.findOne({name: {$regex: payload.category,$options:'i'}});
@@ -118,7 +132,13 @@ async function index(req,res,next){
 
 async function update(req,res,next){
     // > tangkap data form yang dikirimkan oleh client sebagai variabel `payload`
-   try{
+    if(!policy.can('update','Product')){
+        return res.json({
+            error:1,
+            message:`Anda tidak memiliki akses untuk update produk`
+        });
+       }
+    try{
     let payload = req.body;
     if (payload.category){
         let category = await Category.findOne({name: {$regex: payload.category,$options:'i'}});
@@ -202,6 +222,12 @@ async function update(req,res,next){
 
 // destroy
 async function destroy(req, res, next){
+    if(!policy.can('create','Product')){
+        return res.json({
+            error:1,
+            message:`Anda tidak memiliki akses untuk menghapus produk`
+        });
+       }
     try {
         let product = await Product.findOneAndDelete({_id:req.params.id});
 
