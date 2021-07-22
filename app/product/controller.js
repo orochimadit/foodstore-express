@@ -10,7 +10,7 @@ const {policyFor} = require('../policy');
 
 async function store(req,res,next){
     // > tangkap data form yang dikirimkan oleh client sebagai variabel `payload`
-   try {
+    try{  
        let policy = policyFor(req.user);
        if(!policy.can('create','Product')){
         return res.json({
@@ -18,11 +18,6 @@ async function store(req,res,next){
             message:`Anda tidak memiliki akses untuk membuat produk`
         });
        }
-   } catch (error) {
-       
-   }
-
-    try{
     let payload = req.body;
     if (payload.category){
     let category = await Category.findOne({name: {$regex: payload.category,$options:'i'}});
@@ -132,14 +127,17 @@ async function index(req,res,next){
 
 async function update(req,res,next){
     // > tangkap data form yang dikirimkan oleh client sebagai variabel `payload`
-    if(!policy.can('update','Product')){
-        return res.json({
-            error:1,
-            message:`Anda tidak memiliki akses untuk update produk`
-        });
-       }
+       
     try{
-    let payload = req.body;
+        let policy = policyFor(req.user);
+        if(!policy.can('update','Product')){
+         return res.json({
+             error:1,
+             message:`Anda tidak memiliki akses untuk mengupdate produk`
+         });
+        }
+   
+        let payload = req.body;
     if (payload.category){
         let category = await Category.findOne({name: {$regex: payload.category,$options:'i'}});
         if(category){
@@ -222,13 +220,16 @@ async function update(req,res,next){
 
 // destroy
 async function destroy(req, res, next){
-    if(!policy.can('create','Product')){
-        return res.json({
-            error:1,
-            message:`Anda tidak memiliki akses untuk menghapus produk`
-        });
-       }
+      
+   
     try {
+        let policy = policyFor(req.user);
+        if(!policy.can('delete','Product')){
+         return res.json({
+             error:1,
+             message:`Anda tidak memiliki akses untuk menghapus produk`
+         });
+        }
         let product = await Product.findOneAndDelete({_id:req.params.id});
 
         let currentImage = `${config.rootPath}/public/upload/${product.image_url}`;
