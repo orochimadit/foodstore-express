@@ -79,8 +79,7 @@ async function index(req, res, next){
     let count = await Order
     .find({user: req.user._id})
     .countDocuments();
-    let orders = 
-    await Order 
+    let orders =   await Order 
     .find({user: req.user._id})
     .limit(parseInt(limit))
     .skip(parseInt(skip))

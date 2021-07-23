@@ -12,12 +12,15 @@ const wilayahRouter = require('./app/wilayah/router');
 const deliveryRouter = require('./app/deliver-address/router');
 const { decodeToken } = require('./app/auth/middleware');
 const cartRouter = require('./app/cart-item/router');
+const invoiceRouter = require('./app/invoice/router');
+const cors = require('cors');
+
 var app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
-
+app.use(cors());
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -32,6 +35,8 @@ app.use('/auth',authRouter);
 app.use('/api',wilayahRouter);
 app.use('/api',deliveryRouter);
 app.use('/api',cartRouter);
+app.use('/api',invoiceRouter);
+
 app.use(decodeToken())
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
